@@ -924,7 +924,6 @@ def getItems(items, fanart, dontLink=False):
                     addLink(url[0], name.encode('utf-8') if six.PY2 else name,
                             thumbnail, fanArt, desc, genre, date, True, None, regexs, total, **extraInfo)
         except:
-            addon_log(f"SMOY---->{i}")
             traceback.print_exc()
             addon_log(
                 'There was a problem adding item - {0}'.format(repr(name)))
