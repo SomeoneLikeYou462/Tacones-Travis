@@ -1,0 +1,22 @@
+*.pyc
+*.pyo
+.DS*
+.pylint_rc
+/.idea
+/.project
+/.pydevproject
+/.settings
+Thumbs.db
+*~
+.cache
+.coverage
+coverage.xml
+
+# Testing
+tests/home/userdata/addon_data
+.env
+
+Pipfile
+Pipfile.lock
+
+dist/
