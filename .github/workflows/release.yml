@@ -12,8 +12,11 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Clone target repository
-        run: |
-          git clone https://github.com/${{secrets.USER_NAME}}/Tacones-Repo.git dist
+        uses: actions/checkout@v2
+        with:
+          repository: ${{secrets.USER_NAME}}/Tacones-Repo
+          path: dist
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate distribution zips
         id: release-zip
