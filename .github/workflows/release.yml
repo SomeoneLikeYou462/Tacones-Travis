@@ -20,16 +20,16 @@ jobs:
           release="${release//$'\r'/'%0D'}"
           echo ::set-output name=version::$release
 
-      - name: Create Release on Github
-        uses: softprops/action-gh-release@v1
-        with:
-          name: "Tacones - v${{ steps.release-zip.outputs.version }}"
-          tag_name: ${{ steps.release-zip.outputs.version }}
-          body: ${{ steps.get-changelog.outputs.body }}
-          draft: false
-          prerelease: false
-          files: "dist/*.zip"
-          token: ${{ secrets.GH_TOKEN }}
+      # - name: Create Release on Github
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     name: "Tacones - v${{ steps.release-zip.outputs.version }}"
+      #     tag_name: ${{ steps.release-zip.outputs.version }}
+      #     body: ${{ steps.get-changelog.outputs.body }}
+      #     draft: false
+      #     prerelease: false
+      #     files: "dist/*.zip"
+      #     token: ${{ secrets.GH_TOKEN }}
 
       - name: Deploy to external repository
         uses: cpina/github-action-push-to-another-repository@main
