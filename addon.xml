@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.tacones" name="[COLOR red]TACONES[/COLOR]" version="3.5.2" provider-name="La Mala de la Novela">
+<addon id="plugin.video.tacones" name="[COLOR red]TACONES[/COLOR]" version="3.5.3" provider-name="La Mala de la Novela">
 	<requires>
 		<import addon="script.module.six" />
 		<import addon="script.module.kodi-six" />
