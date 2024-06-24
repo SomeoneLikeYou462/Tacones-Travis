@@ -25,6 +25,8 @@ from __future__ import absolute_import, division, unicode_literals
 
 import os
 import shutil
+import json
+
 import xml.etree.ElementTree as ET
 
 DIST_DIR = 'dist'
@@ -58,6 +60,7 @@ if __name__ == '__main__':
         tree = ET.fromstring(f.read())
         addon_info = {
             'id': tree.get('id'),
+            'name': tree.get('name'),
             'version': tree.get('version'),
             'news': tree.find("./extension[@point='xbmc.addon.metadata']/news").text
         }
@@ -76,4 +79,5 @@ if __name__ == '__main__':
             shutil.copytree(f, os.path.join(dest, f), dirs_exist_ok=True)
     shutil.make_archive(os.path.join(DIST_DIR, "%s-%s" %
                         (brand, addon_info['version'])), 'zip', DIST_DIR, brand)
-    print(addon_info['version'])
+    print(json.dumps(
+        {"version": addon_info['version'], "name": addon_info['name'], "id": addon_info['id'], "dest": dest}))
