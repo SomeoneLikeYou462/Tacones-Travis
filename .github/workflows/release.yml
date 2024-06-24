@@ -49,7 +49,7 @@ jobs:
 
         with:
           # GitHub Action output files
-          source-directory: $DEST
+          source-directory: dist
           destination-github-username: ${{secrets.USER_NAME}}
           destination-repository-name: "Tacones-Repo"
           user-email: ${{secrets.USER_EMAIL}}
