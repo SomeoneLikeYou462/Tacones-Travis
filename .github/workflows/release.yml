@@ -41,9 +41,9 @@ jobs:
       - name: Create Release on Github
         uses: softprops/action-gh-release@v1
         with:
-          name: "Tacones - v${{ steps.release-zip.outputs.version }}"
-          tag_name: ${{ steps.release-zip.outputs.version }}
-          body: ${{ steps.get-changelog.outputs.body }}
+          name: "$NAME - v$version"
+          tag_name: $version
+          body: "$NAME - v$version"
           draft: false
           prerelease: false
           files: "dist/*.zip"
