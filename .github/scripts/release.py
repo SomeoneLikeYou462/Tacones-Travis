@@ -31,6 +31,7 @@ import json
 import xml.etree.ElementTree as ET
 
 DIST_DIR = 'dist'
+REPO_DIR = 'repo-deploy'
 
 
 def get_files():
@@ -56,6 +57,37 @@ def get_files():
     return files
 
 
+def copy_files_excluding_zips(src, dst):
+    """
+    Copy all files and directories from src to dst, excluding .zip files.
+
+    :param src: Source directory
+    :param dst: Destination directory
+    """
+    if not os.path.exists(dst):
+        os.makedirs(dst)
+
+    for root, dirs, files in os.walk(src):
+        # Create destination directory structure
+        relative_path = os.path.relpath(root, src)
+        dest_dir = os.path.join(dst, relative_path)
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
+
+        for file in files:
+            if not file.endswith('.zip'):
+                src_file = os.path.join(root, file)
+                dst_file = os.path.join(dest_dir, file)
+                shutil.copy2(src_file, dst_file)
+
+        # Copy directories
+        for dir in dirs:
+            src_dir = os.path.join(root, dir)
+            dst_dir = os.path.join(dest_dir, dir)
+            if not os.path.exists(dst_dir):
+                os.makedirs(dst_dir)
+
+
 if __name__ == '__main__':
     with open('addon.xml', 'r') as f:
         tree = ET.fromstring(f.read())
@@ -69,6 +101,9 @@ if __name__ == '__main__':
     if not os.path.isdir(DIST_DIR):
         os.mkdir(DIST_DIR)
 
+    if not os.path.isdir(REPO_DIR):
+        os.mkdir(REPO_DIR)
+
     brand = addon_info['id']
     dest = os.path.join(DIST_DIR, brand)
     if not os.path.isdir(dest):
@@ -80,5 +115,6 @@ if __name__ == '__main__':
             shutil.copytree(f, os.path.join(dest, f), dirs_exist_ok=True)
     shutil.make_archive(os.path.join(DIST_DIR, "%s-%s" %
                         (brand, addon_info['version'])), 'zip', DIST_DIR, brand)
+    copy_files_excluding_zips(DIST_DIR, REPO_DIR)
     print(json.dumps(
         {"version": addon_info['version'], "name": re.sub(r"(\[[^\]]+\])", "", addon_info['name']), "id": addon_info['id'], "dest": dest}))
