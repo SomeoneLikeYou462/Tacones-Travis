@@ -2609,7 +2609,7 @@ def addLink(url, name, iconimage, fanart, description, genre, date, showcontext,
         url = url.replace('&mode=14', '')
         mode = '14'
     else:
-        mode = '17'
+        mode = '12'
         contextMenu.append(('[COLOR white]!!Download Currently Playing!![/COLOR]', 'RunPlugin(%s?url=%s&mode=21&name=%s)'
                             % (sys.argv[0], urllib_parse.quote_plus(url), urllib_parse.quote_plus(name))))
     if 'plugin://plugin.video.youtube/play/?video_id=' in url:
