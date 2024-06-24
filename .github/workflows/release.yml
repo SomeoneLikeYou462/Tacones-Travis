@@ -30,3 +30,16 @@ jobs:
           prerelease: false
           files: "dist/*.zip"
           token: ${{ secrets.GH_TOKEN }}
+
+      - name: Deploy to external repository
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
+
+        with:
+          # GitHub Action output files
+          source-directory: output
+          destination-github-username: ${{secrets.USER_NAME}}
+          destination-repository-name: "Tacones-Repo"
+          user-email: ${{secrets.USER_EMAIL}}
+          commit-message: ":sparkles: Add addon to repository"
