@@ -2969,6 +2969,15 @@ if playitem != '':
 
 if mode is None:
     addon_log("getSources")
+    from resources.lib.updater import Updater
+
+    try:
+        Updater().checkAvailableVersion(silent=False)
+    except Exception as e:
+        traceback.print_exc()
+        addon_log(
+            f"Ha ocurrido un error leyendo la última versión de {addon_name}")
+        addon_log(f"ERROR: {e}")
     getSources()
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
