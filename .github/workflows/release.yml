@@ -16,7 +16,7 @@ jobs:
         with:
           repository: ${{secrets.USER_NAME}}/Tacones-Repo
           path: dist
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Generate distribution zips
         id: release-zip
@@ -58,4 +58,4 @@ jobs:
           git commit -m ":sparkles: Add addon to repository"
           git push
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
