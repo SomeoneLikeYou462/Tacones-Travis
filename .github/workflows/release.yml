@@ -38,16 +38,16 @@ jobs:
           echo "The addon ID is $ID"
           echo "The destination path is $DEST"
 
-      # - name: Create Release on Github
-      #   uses: softprops/action-gh-release@v1
-      #   with:
-      #     name: "Tacones - v${{ steps.release-zip.outputs.version }}"
-      #     tag_name: ${{ steps.release-zip.outputs.version }}
-      #     body: ${{ steps.get-changelog.outputs.body }}
-      #     draft: false
-      #     prerelease: false
-      #     files: "dist/*.zip"
-      #     token: ${{ secrets.GH_TOKEN }}
+      - name: Create Release on Github
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "Tacones - v${{ steps.release-zip.outputs.version }}"
+          tag_name: ${{ steps.release-zip.outputs.version }}
+          body: ${{ steps.get-changelog.outputs.body }}
+          draft: false
+          prerelease: false
+          files: "dist/*.zip"
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Commit and push changes
         run: |
@@ -55,7 +55,7 @@ jobs:
           git config --global user.name ${{secrets.USER_NAME}}
           git config --global user.email ${{secrets.USER_EMAIL}}
           git add .
-          git commit -m ":sparkles:Add addon to repository"
+          git commit -m ":sparkles: Add addon to repository"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
