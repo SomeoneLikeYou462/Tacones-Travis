@@ -24,6 +24,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
 import os
+import re
 import shutil
 import json
 
@@ -80,4 +81,4 @@ if __name__ == '__main__':
     shutil.make_archive(os.path.join(DIST_DIR, "%s-%s" %
                         (brand, addon_info['version'])), 'zip', DIST_DIR, brand)
     print(json.dumps(
-        {"version": addon_info['version'], "name": addon_info['name'], "id": addon_info['id'], "dest": dest}))
+        {"version": addon_info['version'], "name": re.sub(r"(\[[^\]]+\])", "", addon_info['name']), "id": addon_info['id'], "dest": dest}))
