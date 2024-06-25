@@ -82,8 +82,8 @@ parser.add_argument('-b', '--branch', nargs=1,
                     help='the name of a branch in the Kodi addon repo', default='krypton')
 parser.add_argument('-v', '--version', nargs='?',
                     help='writes the addon version [as read from xml] to the specified file (defaults to "version")', default='version')
-parser.add_argument('-m', '--metadata', nargs='?',
-                    help='Sends to the GitHub action the required information', default='metadata')
+parser.add_argument('-m', '--metadata',
+                    help='Sends to the GitHub action the required information', default='store_true')
 args = parser.parse_args()
 
 # Define args
