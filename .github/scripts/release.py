@@ -11,6 +11,7 @@ from __future__ import print_function
 import re
 import os
 import sys
+import json
 import shutil
 import argparse
 from subprocess import call
@@ -81,6 +82,8 @@ parser.add_argument('-b', '--branch', nargs=1,
                     help='the name of a branch in the Kodi addon repo', default='krypton')
 parser.add_argument('-v', '--version', nargs='?',
                     help='writes the addon version [as read from xml] to the specified file (defaults to "version")', default='version')
+parser.add_argument('-m', '--metadata', nargs='?',
+                    help='Sends to the GitHub action the required information', default='metadata')
 args = parser.parse_args()
 
 # Define args
@@ -107,6 +110,11 @@ html_dir = os.path.join(docs_dir, '_build', 'html')
 # Get add-on version from XML
 xml = ET().parse(os.path.join(root_dir, 'addon.xml'))
 version = xml.get("version")
+
+if not addon:
+    addon = xml.get("name")
+
+addon = re.sub(r"(\[[^\]]+\])", "", addon)
 
 # Define ZIP locations
 zip_name = os.path.join(DIST_DIR, "%s-%s" %
@@ -249,3 +257,7 @@ if args.kodi:
     execute(['git', 'commit', '-m',
             '"[{addon}] {version}"'.format(addon=addon, version=version)])
     execute(['git', 'push', '--force', '--quiet', 'origin', addon])
+
+if args.metadata:
+    print(json.dumps(
+        {"version": version, "name": addon, "id": xml.get("id"), "dest": dest}))
