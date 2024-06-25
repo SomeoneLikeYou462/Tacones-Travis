@@ -1,120 +1,210 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# coding: utf-8
+# Author: Roman Miroshnychenko aka Roman V.M.
+# E-mail: romanvm@yandex.ua
+# License: GPL v.3 <http://www.gnu.org/licenses/gpl-3.0.en.html>
+"""
+Deploy Kodi addons to GitHub repository and/or publish Sphinx docs to GitHub Pages
+"""
 
-# ----------------------------------------------------------------------
-# Copyright 2023 Michaël Arnauts & Someone Like You
-#
-# This file is part of Astro.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
-#
-# ----------------------------------------------------------------------
-
-from __future__ import absolute_import, division, unicode_literals
-
-import os
+from __future__ import print_function
 import re
+import os
+import sys
 import shutil
-import json
+import argparse
+from subprocess import call
+from xml.etree.ElementTree import ElementTree as ET
 
-import xml.etree.ElementTree as ET
-
-DIST_DIR = 'dist'
-REPO_DIR = 'repo-deploy'
-
-
-def get_files():
-    """ Get a list of files that we should package. """
-    # Start with all non-hidden files
-    files = [f for f in os.listdir() if not f.startswith('.')]
-
-    # Exclude files from .gitattributes
-    with open('.gitattributes', 'r') as f:
-        for line in f.read().splitlines():
-            filename, mode = line.split(' ')
-            filename = filename.strip('/')
-            if mode == 'export-ignore' and filename in files:
-                files.remove(filename)
-
-    # Exclude files from .gitignore. I know, this won't do matching
-    with open('.gitignore', 'r') as f:
-        for filename in f.read().splitlines():
-            filename = filename.strip('/')
-            if filename in files:
-                files.remove(filename)
-
-    return files
+USER_NAME = os.environ.get('USER_NAME', '')
+USER_EMAIL = os.environ.get(
+    'USER_EMAIL', '')
+DEVNULL = open(os.devnull, 'w')
+GH_TOKEN = os.environ.get('GH_TOKEN', '')
+PYV = sys.version_info[0]
 
 
-def copy_files_excluding_zips(src, dst):
-    """
-    Copy all files and directories from src to dst, excluding .zip files.
+# Utility functions
+def execute(args, silent=False):
+    if silent:
+        stdout, stderr = DEVNULL, DEVNULL
+    else:
+        stdout, stderr = sys.stdout, sys.stderr
 
-    :param src: Source directory
-    :param dst: Destination directory
-    """
-    if not os.path.exists(dst):
-        os.makedirs(dst)
+    call_string = ' '.join(args).replace(GH_TOKEN, '*****')
+    print('Executing: ' + call_string)
+    res = call(args, stdout=stdout, stderr=stderr)
 
-    for root, dirs, files in os.walk(src):
-        # Create destination directory structure
-        relative_path = os.path.relpath(root, src)
-        dest_dir = os.path.join(dst, relative_path)
-        if not os.path.exists(dest_dir):
-            os.makedirs(dest_dir)
-
-        for file in files:
-            if not file.endswith('.zip'):
-                src_file = os.path.join(root, file)
-                dst_file = os.path.join(dest_dir, file)
-                shutil.copy2(src_file, dst_file)
-
-        # Copy directories
-        for dir in dirs:
-            src_dir = os.path.join(root, dir)
-            dst_dir = os.path.join(dest_dir, dir)
-            if not os.path.exists(dst_dir):
-                os.makedirs(dst_dir)
+    if res:
+        raise RuntimeError('Call {call} returned error code {res}'.format(
+            call=call_string,
+            res=res
+        ))
 
 
-if __name__ == '__main__':
-    with open('addon.xml', 'r') as f:
-        tree = ET.fromstring(f.read())
-        addon_info = {
-            'id': tree.get('id'),
-            'name': tree.get('name'),
-            'version': tree.get('version'),
-            'news': tree.find("./extension[@point='xbmc.addon.metadata']/news").text
-        }
+def clean_pyc(folder):
+    cwd = os.getcwd()
+    os.chdir(folder)
+    paths = os.listdir(folder)
 
-    if not os.path.isdir(DIST_DIR):
-        os.mkdir(DIST_DIR)
+    for path in paths:
+        abs_path = os.path.abspath(path)
+        if os.path.isdir(abs_path):
+            clean_pyc(abs_path)
+        elif path[-4:] == '.pyc':
+            os.remove(abs_path)
+    os.chdir(cwd)
 
-    if not os.path.isdir(REPO_DIR):
-        os.mkdir(REPO_DIR)
 
-    brand = addon_info['id']
-    dest = os.path.join(DIST_DIR, brand)
-    if not os.path.isdir(dest):
-        os.mkdir(dest)
-    for f in get_files():
-        if os.path.isfile(f):
-            shutil.copy(f, dest)
-        else:
-            shutil.copytree(f, os.path.join(dest, f), dirs_exist_ok=True)
-    shutil.make_archive(os.path.join(DIST_DIR, "%s-%s" %
-                        (brand, addon_info['version'])), 'zip', DIST_DIR, brand)
-    copy_files_excluding_zips(DIST_DIR, REPO_DIR)
-    print(json.dumps(
-        {"version": addon_info['version'], "name": re.sub(r"(\[[^\]]+\])", "", addon_info['name']), "id": addon_info['id'], "dest": dest}))
+def create_zip(zip_name, root_dir, addon):
+    clean_pyc(os.path.join(root_dir, addon))
+    shutil.make_archive(zip_name, 'zip', root_dir=root_dir, base_dir=addon)
+    print('ZIP created successfully.')
+
+
+# Argument parsing
+parser = argparse.ArgumentParser(
+    description='Deploy an addon to my Kodi repo and/or publish docs on GitHub Pages')
+parser.add_argument(
+    '-r', '--repo', help='push to my Kodi repo', action='store_true')
+parser.add_argument(
+    '-d', '--docs', help='publish docs to GH pages', action='store_true')
+parser.add_argument(
+    '-z', '--zip', help='pack addon into a ZIP file', action='store_true')
+parser.add_argument('addon', nargs='?', help='addon ID',
+                    action='store', default='')
+parser.add_argument('-k', '--kodi', nargs=1,
+                    help='the name of Kodi addon repo')
+parser.add_argument('-b', '--branch', nargs=1,
+                    help='the name of a branch in the Kodi addon repo', default='krypton')
+parser.add_argument('-v', '--version', nargs='?',
+                    help='writes the addon version [as read from xml] to the specified file (defaults to "version")', default='version')
+args = parser.parse_args()
+
+# Define args
+if not args.addon:
+    addon = os.environ.get('ADDON', '')
+else:
+    addon = args.addon
+
+if not args.version:
+    args.version = 'version'
+
+# Define auxiliary variables
+repo_name = os.environ.get('ADDON_REPOSITORY', '')
+repo_slug = "{}/{}".format(USER_NAME, repo_name)
+
+# Define paths
+root_dir = os.path.dirname(os.path.abspath(__file__))
+kodi_repo_dir = os.path.join(root_dir, repo_name)
+addon_dir = os.path.join(root_dir, addon)
+docs_dir = os.path.join(root_dir, 'docs')
+html_dir = os.path.join(docs_dir, '_build', 'html')
+
+# Get add-on version from XML
+xml = ET().parse(os.path.join(root_dir, addon, 'addon.xml'))
+version = xml.get("version")
+
+# Define ZIP locations
+zip_name = '{0}-{1}'.format(addon, version)
+zip_path = os.path.join(root_dir, zip_name + '.zip')
+
+# Define URLs
+REPO_URL_MASK = 'https://{username}:{gh_token}@github.com/{repo_slug}.git'
+gh_repo_url = REPO_URL_MASK.format(
+    username=USER_NAME.lower(), gh_token=GH_TOKEN, repo_slug=repo_slug)
+kodi_repo_url = REPO_URL_MASK.format(
+    username=USER_NAME.lower(), gh_token=GH_TOKEN, repo_slug=repo_slug)
+
+# Start working
+os.chdir(root_dir)
+
+if args.version:
+    _path = os.path.join(root_dir, args.version)
+    with open(_path, "w") as file:
+        file.write(version)
+
+if args.zip:
+    create_zip(zip_name, root_dir, addon)
+
+if args.repo:
+    if not os.path.exists(zip_path):
+        create_zip(zip_name, root_dir, addon)
+
+    if not os.path.exists(kodi_repo_dir) or \
+       not os.path.exists(os.path.join(kodi_repo_dir, '.git')):
+        execute(['git', 'clone', kodi_repo_url])
+
+    # Sin sentido
+    # else:
+    #     execute(['git', 'pull'])
+
+    os.chdir(kodi_repo_dir)
+    execute(['git', 'remote', 'set-url', 'origin', kodi_repo_url])
+    # execute(['git', 'checkout', 'gh-pages'])
+    execute(['git', 'config', 'user.name', USER_NAME])
+    execute(['git', 'config', 'user.email', USER_EMAIL])
+    # addon_repo = os.path.join(kodi_repo_dir, 'repo', addon)
+    addon_repo = os.path.join(kodi_repo_dir, addon)
+
+    if not os.path.exists(addon_repo):
+        os.mkdir(addon_repo)
+
+    shutil.copy(zip_path, addon_repo)
+    shutil.copy(os.path.join(addon_dir, 'addon.xml'), addon_repo)
+
+    # os.chdir(os.path.join(kodi_repo_dir, 'repo'))
+    execute(['pip%s' % PYV, 'install', 'lxml'])
+    os.chdir(kodi_repo_dir)
+    execute(['python', 'repo_prep.py'])
+    os.chdir(kodi_repo_dir)
+
+    execute(['git', 'add', '--all', '.'])
+    execute(['git', 'commit', '-m',
+            'Update {addon} to v.{version}'.format(addon=addon, version=version)])
+    execute(['git', 'push', '--force'])
+
+    print('Addon {addon} v{version} deployed to Kodi repo'.format(
+        addon=addon, version=version))
+
+if args.docs:
+    os.chdir(docs_dir)
+    execute(['make', 'html'])
+    os.chdir(html_dir)
+    execute(['git', 'init'])
+    execute(['git', 'config', 'user.name', USER_NAME])
+    execute(['git', 'config', 'user.email', USER_EMAIL])
+    open('.nojekyll', 'w').close()
+    execute(['git', 'add', '--all', '.'])
+    execute(['git', 'commit',
+            '-m' 'Update {addon} docs to v.{version}'.format(addon=addon, version=version)])
+    execute(['git', 'push', '--force', '--quiet',
+            gh_repo_url, 'HEAD:gh-pages'], silent=True)
+    print('{addon} docs v.{version} published to GitHub Pages.'.format(
+        addon=addon, version=version))
+
+if args.kodi:
+    repo = args.kodi[0]
+    branch = args.branch[0]
+    os.chdir(root_dir)
+    off_repo_fork = REPO_URL_MASK.format(
+        gh_token=GH_TOKEN, repo_slug='SomeoneLikeYou462/' + repo)
+    execute(['git', 'clone', off_repo_fork], silent=True)
+    os.chdir(repo)
+    execute(['git', 'config', 'user.name', USER_NAME])
+    execute(['git', 'config', 'user.email', USER_EMAIL])
+    # execute(['git', 'remote', 'add', 'upstream', 'https://github.com/xbmc/{}.git'.format(repo)])
+    execute(['git', 'fetch', 'upstream'])
+    execute(['git', 'checkout', '-b', branch,
+            '--track', 'origin/{}'.format(branch)])
+    execute(['git', 'merge', 'upstream/{}'.format(branch)])
+    os.system('git branch -D ' + addon)
+    execute(['git', 'checkout', '-b', addon])
+    clean_pyc(os.path.join(root_dir, addon))
+    shutil.rmtree(os.path.join(root_dir, repo, addon), ignore_errors=True)
+    shutil.copytree(os.path.join(root_dir, addon),
+                    os.path.join(root_dir, repo, addon))
+    execute(['git', 'add', '--all', '.'])
+    execute(['git', 'commit', '-m',
+            '"[{addon}] {version}"'.format(addon=addon, version=version)])
+    execute(['git', 'push', '--force', '--quiet', 'origin', addon])
