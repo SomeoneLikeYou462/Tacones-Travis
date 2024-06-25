@@ -109,7 +109,8 @@ xml = ET().parse(os.path.join(root_dir, 'addon.xml'))
 version = xml.get("version")
 
 # Define ZIP locations
-zip_name = '{0}-{1}'.format(addon, version)
+zip_name = os.path.join(DIST_DIR, "%s-%s" %
+                        (addon, version))
 zip_path = os.path.join(root_dir, zip_name + '.zip')
 
 # Define URLs
@@ -165,8 +166,7 @@ if args.zip:
             shutil.copy(f, dest)
         else:
             shutil.copytree(f, os.path.join(dest, f), dirs_exist_ok=True)
-    shutil.make_archive(os.path.join(DIST_DIR, "%s-%s" %
-                        (addon, version)), 'zip', DIST_DIR, addon)
+    shutil.make_archive(zip_name, 'zip', DIST_DIR, addon)
 
 if args.repo:
     if not os.path.exists(zip_path):
