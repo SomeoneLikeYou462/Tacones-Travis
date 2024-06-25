@@ -78,7 +78,7 @@ class Updater(object):
     """This class is used to check if the addon is updated, and if not, update it; TODO: Change by indomita URL"""
 
     def __init__(self):
-        self.RELEASES_URL = "https://api.github.com/repos/SomeoneLikeYou462/Tacones-Travis/releases?per_page=100&page=1"
+        self.RELEASES_URL = "https://api.github.com/repos/830NY/Tacones_plugin/releases?per_page=100&page=1"
         self.LOCAL_VERSION = None
         self.getLocalVersion()
 
