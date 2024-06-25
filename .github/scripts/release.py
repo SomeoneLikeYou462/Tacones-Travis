@@ -57,7 +57,7 @@ def clean_pyc(folder):
 
 
 def create_zip(zip_name, root_dir, addon):
-    clean_pyc(os.path.join(root_dir, addon))
+    clean_pyc(root_dir)
     shutil.make_archive(zip_name, 'zip', root_dir=root_dir, base_dir=addon)
     print('ZIP created successfully.')
 
@@ -120,13 +120,48 @@ kodi_repo_url = REPO_URL_MASK.format(
 # Start working
 os.chdir(root_dir)
 
+
+def get_files():
+    """ Get a list of files that we should package. """
+    # Start with all non-hidden files
+    files = [f for f in os.listdir() if not f.startswith('.')]
+
+    # Exclude files from .gitattributes
+    with open('.gitattributes', 'r') as f:
+        for line in f.read().splitlines():
+            filename, mode = line.split(' ')
+            filename = filename.strip('/')
+            if mode == 'export-ignore' and filename in files:
+                files.remove(filename)
+
+    # Exclude files from .gitignore. I know, this won't do matching
+    with open('.gitignore', 'r') as f:
+        for filename in f.read().splitlines():
+            filename = filename.strip('/')
+            if filename in files:
+                files.remove(filename)
+
+    return files
+
+
+dest = os.path.join("dist", addon)
+if not os.path.isdir(dest):
+    os.mkdir(dest)
+
+
 if args.version:
     _path = os.path.join(root_dir, args.version)
     with open(_path, "w") as file:
         file.write(version)
 
 if args.zip:
-    create_zip(zip_name, root_dir, addon)
+    for f in get_files():
+        if os.path.isfile(f):
+            shutil.copy(f, dest)
+        else:
+            shutil.copytree(f, os.path.join(dest, f), dirs_exist_ok=True)
+    shutil.make_archive(os.path.join("dist", "%s-%s" %
+                        (addon, version)), 'zip', "dist", addon)
 
 if args.repo:
     if not os.path.exists(zip_path):
