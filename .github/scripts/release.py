@@ -110,11 +110,11 @@ html_dir = os.path.join(docs_dir, '_build', 'html')
 # Get add-on version from XML
 xml = ET().parse(os.path.join(root_dir, 'addon.xml'))
 version = xml.get("version")
-addonId = xml.get("id")
-if not addon:
-    addon = xml.get("name")
 
-addon = re.sub(r"(\[[^\]]+\])", "", addon)
+if not addon:
+    addon = xml.get("id")
+
+addonName = re.sub(r"(\[[^\]]+\])", "", xml.get("name"))
 
 # Define ZIP locations
 zip_name = os.path.join(DIST_DIR, "%s-%s" %
@@ -194,7 +194,7 @@ if args.repo:
     execute(['git', 'config', 'user.name', USER_NAME])
     execute(['git', 'config', 'user.email', USER_EMAIL])
     # addon_repo = os.path.join(kodi_repo_dir, 'repo', addon)
-    addon_repo = os.path.join(kodi_repo_dir, addonId)
+    addon_repo = os.path.join(kodi_repo_dir, addon)
 
     if not os.path.exists(addon_repo):
         os.mkdir(addon_repo)
@@ -214,8 +214,8 @@ if args.repo:
     execute(['git', 'push', '--force'])
 
     print('Addon {addon} v{version} deployed to Kodi repo'.format(
-        addon=addonId, version=version))
+        addon=addon, version=version))
 
 if args.metadata:
     print(json.dumps(
-        {"version": version, "name": addon, "id": addonId, "dest": dest}))
+        {"version": version, "name": addonName, "id": addon, "dest": dest}))
