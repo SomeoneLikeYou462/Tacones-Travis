@@ -22,9 +22,11 @@ USER_EMAIL = os.environ.get(
 DEVNULL = open(os.devnull, 'w')
 GH_TOKEN = os.environ.get('GH_TOKEN', '')
 PYV = sys.version_info[0]
-
+DIST_DIR = "dist"
 
 # Utility functions
+
+
 def execute(args, silent=False):
     if silent:
         stdout, stderr = DEVNULL, DEVNULL
@@ -144,7 +146,10 @@ def get_files():
     return files
 
 
-dest = os.path.join("dist", addon)
+if not os.path.isdir(DIST_DIR):
+    os.mkdir(DIST_DIR)
+
+dest = os.path.join(DIST_DIR, addon)
 if not os.path.isdir(dest):
     os.mkdir(dest)
 
@@ -160,8 +165,8 @@ if args.zip:
             shutil.copy(f, dest)
         else:
             shutil.copytree(f, os.path.join(dest, f), dirs_exist_ok=True)
-    shutil.make_archive(os.path.join("dist", "%s-%s" %
-                        (addon, version)), 'zip', "dist", addon)
+    shutil.make_archive(os.path.join(DIST_DIR, "%s-%s" %
+                        (addon, version)), 'zip', DIST_DIR, addon)
 
 if args.repo:
     if not os.path.exists(zip_path):
