@@ -96,6 +96,8 @@ repo_slug = "{}/{}".format(USER_NAME, repo_name)
 
 # Define paths
 root_dir = os.path.dirname(os.path.abspath(__file__))
+if ".github" in root_dir:
+    root_dir = root_dir.split(".github")[0]
 kodi_repo_dir = os.path.join(root_dir, repo_name)
 addon_dir = os.path.join(root_dir, addon)
 docs_dir = os.path.join(root_dir, 'docs')
