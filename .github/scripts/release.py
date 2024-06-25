@@ -99,12 +99,11 @@ root_dir = os.path.dirname(os.path.abspath(__file__))
 if ".github" in root_dir:
     root_dir = root_dir.split(".github")[0]
 kodi_repo_dir = os.path.join(root_dir, repo_name)
-addon_dir = os.path.join(root_dir, addon)
 docs_dir = os.path.join(root_dir, 'docs')
 html_dir = os.path.join(docs_dir, '_build', 'html')
 
 # Get add-on version from XML
-xml = ET().parse(os.path.join(root_dir, addon, 'addon.xml'))
+xml = ET().parse(os.path.join(root_dir, 'addon.xml'))
 version = xml.get("version")
 
 # Define ZIP locations
@@ -153,7 +152,7 @@ if args.repo:
         os.mkdir(addon_repo)
 
     shutil.copy(zip_path, addon_repo)
-    shutil.copy(os.path.join(addon_dir, 'addon.xml'), addon_repo)
+    shutil.copy(os.path.join(root_dir, 'addon.xml'), addon_repo)
 
     # os.chdir(os.path.join(kodi_repo_dir, 'repo'))
     execute(['pip%s' % PYV, 'install', 'lxml'])
