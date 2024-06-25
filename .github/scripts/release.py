@@ -114,7 +114,7 @@ version = xml.get("version")
 if not addon:
     addon = xml.get("id")
 
-addonName = re.sub(r"(\[[^\]]+\])", "", xml.get("name"))
+addonName = re.sub(r"(\[[^\]]+\])", "", xml.get("name")).title()
 
 # Define ZIP locations
 zip_name = os.path.join(DIST_DIR, "%s-%s" %
