@@ -210,53 +210,11 @@ if args.repo:
 
     execute(['git', 'add', '--all', '.'])
     execute(['git', 'commit', '-m',
-            'Update {addon} to v.{version}'.format(addon=addon, version=version)])
+            ':sparkles: Update {addon} to v.{version}'.format(addon=addon, version=version)])
     execute(['git', 'push', '--force'])
 
     print('Addon {addon} v{version} deployed to Kodi repo'.format(
         addon=addon, version=version))
-
-if args.docs:
-    os.chdir(docs_dir)
-    execute(['make', 'html'])
-    os.chdir(html_dir)
-    execute(['git', 'init'])
-    execute(['git', 'config', 'user.name', USER_NAME])
-    execute(['git', 'config', 'user.email', USER_EMAIL])
-    open('.nojekyll', 'w').close()
-    execute(['git', 'add', '--all', '.'])
-    execute(['git', 'commit',
-            '-m' 'Update {addon} docs to v.{version}'.format(addon=addon, version=version)])
-    execute(['git', 'push', '--force', '--quiet',
-            gh_repo_url, 'HEAD:gh-pages'], silent=True)
-    print('{addon} docs v.{version} published to GitHub Pages.'.format(
-        addon=addon, version=version))
-
-if args.kodi:
-    repo = args.kodi[0]
-    branch = args.branch[0]
-    os.chdir(root_dir)
-    off_repo_fork = REPO_URL_MASK.format(
-        gh_token=GH_TOKEN, repo_slug='SomeoneLikeYou462/' + repo)
-    execute(['git', 'clone', off_repo_fork], silent=True)
-    os.chdir(repo)
-    execute(['git', 'config', 'user.name', USER_NAME])
-    execute(['git', 'config', 'user.email', USER_EMAIL])
-    # execute(['git', 'remote', 'add', 'upstream', 'https://github.com/xbmc/{}.git'.format(repo)])
-    execute(['git', 'fetch', 'upstream'])
-    execute(['git', 'checkout', '-b', branch,
-            '--track', 'origin/{}'.format(branch)])
-    execute(['git', 'merge', 'upstream/{}'.format(branch)])
-    os.system('git branch -D ' + addon)
-    execute(['git', 'checkout', '-b', addon])
-    clean_pyc(os.path.join(root_dir, addon))
-    shutil.rmtree(os.path.join(root_dir, repo, addon), ignore_errors=True)
-    shutil.copytree(os.path.join(root_dir, addon),
-                    os.path.join(root_dir, repo, addon))
-    execute(['git', 'add', '--all', '.'])
-    execute(['git', 'commit', '-m',
-            '"[{addon}] {version}"'.format(addon=addon, version=version)])
-    execute(['git', 'push', '--force', '--quiet', 'origin', addon])
 
 if args.metadata:
     print(json.dumps(

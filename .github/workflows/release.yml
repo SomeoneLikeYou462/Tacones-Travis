@@ -12,15 +12,11 @@ jobs:
       USER_NAME: ${{secrets.USER_NAME}}
       USER_EMAIL: ${{secrets.USER_EMAIL}}
       ADDON_REPOSITORY: Tacones-Repo
-      ADDON: "plugin.video.tacones"
     steps:
-      - name: Installing environment tools
-        run: sudo snap install --classic hub
-
-      - name: Configure Python 3.8
+      - name: Configure Python 3.x
         uses: actions/setup-python@v2
         with:
-          python-version: "3.8"
+          python-version: "3.x"
 
       - name: Checkout repo
         uses: actions/checkout@v2
