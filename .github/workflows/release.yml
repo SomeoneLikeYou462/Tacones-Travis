@@ -9,9 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      GIT_USER_NAME: ${{secrets.USER_NAME}}
-      GIT_USER_EMAIL: ${{secrets.USER_EMAIL}}
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      USER_NAME: ${{secrets.USER_NAME}}
+      USER_EMAIL: ${{secrets.USER_EMAIL}}
       ADDON_REPOSITORY: Tacones-Repo
       ADDON: "plugin.video.tacones"
     steps:
